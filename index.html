@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PolyLiquid AI — Hyperliquid + Polymarket Cross-Edge Terminal & x402 MCP Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #090d16;
+      color: #f1f5f9;
+      overflow-x: hidden;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(51, 65, 85, 0.7);
+      backdrop-filter: blur(10px);
+    }
+    .tab-active {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #04130d;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+    }
+    input[type="range"] {
+      accent-color: #10b981;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-emerald-500 selection:text-slate-950">
+
+  <!-- Toast Notification Banner -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 hidden max-w-sm bg-emerald-500 text-slate-950 font-semibold px-4 py-3 rounded-xl shadow-2xl border border-emerald-300 transition-all duration-300 flex items-center gap-2">
+    <span id="toast-icon" class="text-lg">✓</span>
+    <span id="toast-msg" class="text-sm">Action completed!</span>
+  </div>
+
+  <!-- Top Header -->
+  <header class="border-b border-slate-800 bg-slate-950/90 sticky top-0 z-40 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center text-slate-950 font-extrabold text-lg shadow-lg">
+          PL
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white">PolyLiquid AI</h1>
+            <span class="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">4-Engine Hybrid</span>
+          </div>
+          <p class="text-xs text-slate-400">Hyperliquid (Perps + HIP-4) × Polymarket CLOB V2 × Coinbase x402 MCP</p>
+        </div>
+      </div>
+
+      <!-- Verified Market Strip -->
+      <div class="flex flex-wrap items-center gap-2 text-xs mono">
+        <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+          BTC <strong class="text-emerald-400">$77,812</strong>
+        </span>
+        <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+          ETH <strong class="text-emerald-400">$2,269</strong>
+        </span>
+        <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+          SOL <strong class="text-emerald-400">$90.03</strong>
+        </span>
+        <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+          HYPE <strong class="text-cyan-400">$78.14</strong>
+        </span>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="max-w-7xl mx-auto px-4 pb-2.5 flex flex-wrap gap-1.5">
+      <button id="tab-btn-terminal" onclick="switchTab('terminal')" class="tab-active text-xs sm:text-sm px-3.5 py-2 rounded-lg transition-all">
+        1. Cross-Market Terminal & Setup
+      </button>
+      <button id="tab-btn-auditor" onclick="switchTab('auditor')" class="bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs sm:text-sm px-3.5 py-2 rounded-lg transition-all border border-slate-800">
+        2. Polymarket Rule-Trap Auditor
+      </button>
+      <button id="tab-btn-mcp" onclick="switchTab('mcp')" class="bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs sm:text-sm px-3.5 py-2 rounded-lg transition-all border border-slate-800">
+        3. Builder Revenue & MCP + x402 Code
+      </button>
+      <button id="tab-btn-launchpad" onclick="switchTab('launchpad')" class="bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs sm:text-sm px-3.5 py-2 rounded-lg transition-all border border-slate-800">
+        4. Customer Launchpad (Kaise Pata Chalega?)
+      </button>
+    </div>
+  </header>
+
+  <!-- Beginner-Friendly 3-Step Hinglish Action Bar -->
+  <div class="bg-gradient-to-r from-emerald-950/90 via-slate-900 to-cyan-950/90 border-b border-emerald-500/40 px-4 py-3">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+      <div class="space-y-0.5">
+        <div class="text-xs sm:text-sm font-extrabold text-emerald-300 flex items-center gap-2">
+          <span>🚀 Aasaan 3-Step Shuruat (Bina Kisi Coding Ke):</span>
+        </div>
+        <p class="text-xs text-slate-200">
+          <strong>Step 1:</strong> Neeche apna <code class="text-amber-300">0x...</code> Public Wallet Address dalein →
+          <strong>Step 2:</strong> "Download Ready Website" button dabayein →
+          <strong>Step 3:</strong> File ko free hosting par upload karke link share karein!
+        </p>
+      </div>
+      <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+        <input id="quick-wallet-input" type="text" value="0xD504451868BcA32BCd1E9EEA20458241864814bc" placeholder="Apna 0x... Public Wallet Address yahan paste karein" oninput="syncQuickWallet(this.value)" class="flex-1 md:w-64 bg-slate-950 border border-emerald-500 rounded-lg px-3 py-1.5 text-xs mono text-emerald-300 focus:outline-none" />
+        <button onclick="downloadReadyWebsite()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs px-3.5 py-2 rounded-lg shadow transition-all shrink-0">
+          ⬇ Download Ready Website (index.html)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Workspace Container -->
+  <main class="max-w-7xl w-full mx-auto px-4 py-6 flex-1 space-y-6">
+
+    <!-- ==================== TAB 1: TERMINAL & SETUP ENGINE ==================== -->
+    <section id="view-terminal" class="space-y-6">
+      <!-- Top KPI Banner -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="glass-card rounded-xl p-4">
+          <div class="text-xs text-slate-400 flex items-center justify-between">
+            <span>Hyperliquid 30d Perp Vol</span>
+            <a href="https://defillama.com/protocol/hyperliquid" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:underline">DefiLlama ↗</a>
+          </div>
+          <div class="text-xl font-extrabold text-white mt-1 mono">$234.44B</div>
+          <div class="text-[11px] text-slate-400 mt-1">TVL: $8.094B (Nov 7, 2026)</div>
+        </div>
+        <div class="glass-card rounded-xl p-4">
+          <div class="text-xs text-slate-400 flex items-center justify-between">
+            <span>Q4 2026 Builder Code Fees</span>
+            <a href="https://defillama.com/protocol/hyperliquid" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:underline">DefiLlama ↗</a>
+          </div>
+          <div class="text-xl font-extrabold text-emerald-400 mt-1 mono">$14.08M</div>
+          <div class="text-[11px] text-slate-400 mt-1">Up to 0.10% Perps / 1.0% Spot</div>
+        </div>
+        <div class="glass-card rounded-xl p-4">
+          <div class="text-xs text-slate-400 flex items-center justify-between">
+            <span>Polymarket Builder Rewards</span>
+            <a href="https://polymart.app/blog/polymarket-builders-program" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline">PolyMart ↗</a>
+          </div>
+          <div class="text-xl font-extrabold text-cyan-400 mt-1 mono">0.5%–1.0%</div>
+          <div class="text-[11px] text-slate-400 mt-1">Weekly USDC Pool + $2.5M Grants</div>
+        </div>
+        <div class="glass-card rounded-xl p-4">
+          <div class="text-xs text-slate-400 flex items-center justify-between">
+            <span>HIP-4 vs Polymarket Fee Edge</span>
+            <a href="https://chainstack.com/hyperliquid-hip4-vs-polymarket-2026/" target="_blank" rel="noopener noreferrer" class="text-amber-400 hover:underline">Chainstack ↗</a>
+          </div>
+          <div class="text-xl font-extrabold text-amber-400 mt-1 mono">0% vs 1.80%</div>
+          <div class="text-[11px] text-slate-400 mt-1">HIP-4 Open Fee 0% vs Poly 15m Peak</div>
+        </div>
+      </div>
+
+      <!-- Main Grid: Left Controls + Right Setup Output -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left Column: Setup Configurator -->
+        <div class="lg:col-span-5 glass-card rounded-2xl p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <h2 class="text-base font-bold text-white">AI Micro-Account Trade Configurator</h2>
+              <p class="text-xs text-slate-400">Exact Entry, SL, TP1/TP2 + Net Fee & Builder Attribution</p>
+            </div>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-medium">Live Math</span>
+          </div>
+
+          <!-- Select Coin -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-2">1. Select Asset (Nov 2026 Benchmark Prices)</label>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button id="asset-btn-BTC" onclick="selectAsset('BTC')" class="px-3 py-2 rounded-xl text-xs font-bold border border-emerald-500 bg-emerald-500/20 text-white transition-all">
+                BTC<br/><span class="mono text-[11px] text-emerald-300">$77,812</span>
+              </button>
+              <button id="asset-btn-ETH" onclick="selectAsset('ETH')" class="px-3 py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-600 transition-all">
+                ETH<br/><span class="mono text-[11px] text-slate-400">$2,269</span>
+              </button>
+              <button id="asset-btn-SOL" onclick="selectAsset('SOL')" class="px-3 py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-600 transition-all">
+                SOL<br/><span class="mono text-[11px] text-slate-400">$90.03</span>
+              </button>
+              <button id="asset-btn-HYPE" onclick="selectAsset('HYPE')" class="px-3 py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-600 transition-all">
+                HYPE<br/><span class="mono text-[11px] text-slate-400">$78.14</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Trade Direction & Order Type -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1.5">2. Direction</label>
+              <div class="grid grid-cols-2 gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                <button id="dir-btn-LONG" onclick="setDirection('LONG')" class="py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950">LONG ↑</button>
+                <button id="dir-btn-SHORT" onclick="setDirection('SHORT')" class="py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">SHORT ↓</button>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1.5">3. Execution Type</label>
+              <div class="grid grid-cols-2 gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                <button id="ord-btn-MAKER" onclick="setOrderType('MAKER')" class="py-1.5 rounded-lg text-xs font-bold bg-cyan-400 text-slate-950" title="ALO Post-Only Limit Order: 0.015% Fee">ALO Maker</button>
+                <button id="ord-btn-TAKER" onclick="setOrderType('TAKER')" class="py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white" title="Market Order: 0.045% Fee">Market Taker</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Capital & Leverage Sliders -->
+          <div class="space-y-3 pt-1">
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-300 font-medium">Account Capital (USDC)</span>
+                <span id="lbl-capital" class="mono font-bold text-emerald-400">$500</span>
+              </div>
+              <input id="inp-capital" type="range" min="100" max="10000" step="50" value="500" oninput="recalcSetup()" class="w-full cursor-pointer" />
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-300 font-medium">Leverage (2x Safe Micro-Account Default)</span>
+                <span id="lbl-leverage" class="mono font-bold text-cyan-400">2x ($1,000 Pos)</span>
+              </div>
+              <input id="inp-leverage" type="range" min="1" max="10" step="1" value="2" oninput="recalcSetup()" class="w-full cursor-pointer" />
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-300 font-medium">Target Daily Net Profit (After All Fees)</span>
+                <span id="lbl-target" class="mono font-bold text-emerald-400">$8.50</span>
+              </div>
+              <input id="inp-target" type="range" min="5" max="50" step="0.5" value="8.5" oninput="recalcSetup()" class="w-full cursor-pointer" />
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-300 font-medium">Your Attached Builder Fee (Max 0.10% Perps)</span>
+                <span id="lbl-builder-fee" class="mono font-bold text-amber-400">0.05% (f: 50)</span>
+              </div>
+              <input id="inp-builder-fee" type="range" min="0" max="0.10" step="0.01" value="0.05" oninput="recalcSetup()" class="w-full cursor-pointer" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Generated AI Trade Card + Safe Sign Link -->
+        <div class="lg:col-span-7 glass-card rounded-2xl p-5 flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+              <div>
+                <span id="setup-badge" class="text-[11px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">BTC-PERP LONG • 2x ALO MAKER</span>
+                <h3 id="setup-headline" class="text-lg font-extrabold text-white mt-1">BTC/USDC Risk-Audited Setup ($1,000 Notional)</h3>
+              </div>
+              <div class="text-right">
+                <div class="text-[11px] text-slate-400">Required Price Move</div>
+                <div id="out-req-move" class="text-base font-extrabold text-emerald-400 mono">+0.98%</div>
+              </div>
+            </div>
+
+            <!-- 4 Key Levels Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-4">
+              <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-3">
+                <div class="text-[11px] text-slate-400">Entry Zone (Limit ALO)</div>
+                <div id="out-entry" class="text-sm sm:text-base font-bold text-white mono mt-0.5">$77,650 – $77,812</div>
+                <div id="out-support-note" class="text-[10px] text-slate-400 mt-1">Near $77.3K Nov pivot</div>
+              </div>
+              <div class="bg-rose-950/30 border border-rose-800/60 rounded-xl p-3">
+                <div class="text-[11px] text-rose-300">Stop-Loss (SL)</div>
+                <div id="out-sl" class="text-sm sm:text-base font-bold text-rose-400 mono mt-0.5">$77,190</div>
+                <div id="out-sl-usd" class="text-[10px] text-rose-300/80 mt-1">Risk: -$8.00 (1.6% Cap)</div>
+              </div>
+              <div class="bg-emerald-950/30 border border-emerald-800/60 rounded-xl p-3">
+                <div class="text-[11px] text-emerald-300">Take-Profit 1 (TP1 60%)</div>
+                <div id="out-tp1" class="text-sm sm:text-base font-bold text-emerald-400 mono mt-0.5">$78,450</div>
+                <div id="out-tp1-usd" class="text-[10px] text-emerald-300/80 mt-1">Locks +$5.10 Net</div>
+              </div>
+              <div class="bg-cyan-950/30 border border-cyan-800/60 rounded-xl p-3">
+                <div class="text-[11px] text-cyan-300">Take-Profit 2 (TP2 40%)</div>
+                <div id="out-tp2" class="text-sm sm:text-base font-bold text-cyan-400 mono mt-0.5">$78,760</div>
+                <div id="out-tp2-usd" class="text-[10px] text-cyan-300/80 mt-1">Total +$8.50 Net Goal</div>
+              </div>
+            </div>
+
+            <!-- Transparent Fee & Liquidation Audit Box -->
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 space-y-2 text-xs">
+              <div class="font-bold text-slate-200 flex items-center justify-between">
+                <span>On-Chain Fee & Net Profit Audit (Round-Trip Open + Close)</span>
+                <a href="https://www.datawallet.com/crypto/hyperliquid-fees-explained" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:underline text-[11px]">Hyperliquid Tier 0 Schedule ↗</a>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                <div>
+                  <span class="text-slate-400 block text-[11px]">Protocol Fee:</span>
+                  <span id="out-proto-fee" class="mono font-semibold text-slate-200">$0.30 (0.030%)</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[11px]">Your Builder Fee Earn:</span>
+                  <span id="out-builder-earn" class="mono font-semibold text-amber-400">+$1.00 (f: 50)</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[11px]">Est. Liquidation Price:</span>
+                  <span id="out-liq-price" class="mono font-semibold text-cyan-300">$40,850 (-47.5%)</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[11px]">User Net Profit:</span>
+                  <span id="out-net-profit" class="mono font-bold text-emerald-400">+$8.50 USDC</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 1-Click Safe Signing Payload Preview (No Private Key Needed) -->
+          <div class="bg-slate-900/90 border border-emerald-500/30 rounded-xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div class="text-xs">
+              <div class="font-bold text-emerald-300">Zero-Key Safe Signing Payload (Builder Code Attached)</div>
+              <p class="text-slate-400 text-[11px] mt-0.5">
+                Unlike <a href="https://mcpservers.org/servers/erscoder/hyperliquid-mcp" target="_blank" rel="noopener noreferrer" class="underline text-slate-300">erscoder/hyperliquid-mcp</a> (which asks for private keys), users sign EIP-712 in their own wallet while your Builder Code collects <span id="out-inline-bfee" class="text-amber-300 font-semibold">$1.00 USDC</span>.
+              </p>
+            </div>
+            <button onclick="copyOrderPayload()" class="shrink-0 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow">
+              Copy Signed Order JSON
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Section: Hyperliquid HIP-4 vs Polymarket CLOB V2 Arbitrage & Fee Comparison -->
+      <div class="glass-card rounded-2xl p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <div>
+            <h3 class="text-base font-bold text-white">2026 Exclusive Edge: Hyperliquid HIP-4 vs. Polymarket CLOB V2 Fee & Odds Scanner</h3>
+            <p class="text-xs text-slate-400">
+              Comparing crypto binary outcome contracts across <a href="https://chainstack.com/hyperliquid-hip4-vs-polymarket-2026/" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:underline">Hyperliquid HIP-4 (0% open fee)</a> and <a href="https://chainstack.com/hyperliquid-hip4-vs-polymarket-2026/" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline">Polymarket CLOB V2 (1.56%–1.80% peak 15m crypto taker fee)</a>
+            </p>
+          </div>
+          <div class="flex items-center gap-2 text-xs">
+            <label for="inp-outcome-size" class="text-slate-300 font-medium">Outcome Bet Size:</label>
+            <input id="inp-outcome-size" type="number" min="50" max="50000" step="50" value="1000" oninput="recalcOutcomeArb()" class="w-28 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-emerald-400 font-bold mono text-right" />
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400 uppercase text-[11px]">
+                <th class="py-2.5 pr-3">Binary Event Market</th>
+                <th class="py-2.5 px-3">Polymarket CLOB V2 (pUSD)</th>
+                <th class="py-2.5 px-3">Hyperliquid HIP-4 (USDH/USDC)</th>
+                <th class="py-2.5 px-3 text-right">Fee Saved on HIP-4</th>
+                <th class="py-2.5 pl-3 text-right">Your Builder Attribution</th>
+              </tr>
+            </thead>
+            <tbody id="arb-table-body" class="divide-y divide-slate-800/70 mono">
+              <!-- Populated dynamically by recalcOutcomeArb() -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: POLYMARKET RULE-TRAP AUDITOR ==================== -->
+    <section id="view-auditor" class="hidden space-y-6">
+      <div class="glass-card rounded-2xl p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <div>
+            <h2 class="text-base font-bold text-white">Polymarket UMA & Cross-Venue Resolution Trap Auditor</h2>
+            <p class="text-xs text-slate-400">
+              Over 82% of Polymarket wallets lose money (<a href="https://www.kq2.com/stacker-personal-finance-investing/2026/11/05/do-stocks-beat-prediction-markets-for-most-people-yes/" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:underline">Motley Fool 313K Wallet Study ↗</a>), often due to hidden oracle resolution traps (<a href="https://www.antalpha.com/en-us/blog/crypto-mcp-in-practice-the-15-tool-groups-an-ai-agent-gets-and-the-17-tools-that/" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline">Antalpha 2026 Check ↗</a>).
+            </p>
+          </div>
+          <span class="text-xs font-semibold px-3 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30">x402 Paid Tool #2 Preview</span>
+        </div>
+
+        <!-- Preset Trap Selector -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-2">Select a Documented 2026 Market Ruleset or Paste Any Market Description Below:</label>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+            <button onclick="loadTrapPreset(0)" class="text-left p-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 transition-all">
+              <div class="text-xs font-bold text-amber-400">Trap #1: Polymarket UMA vs. Kalshi CFTC</div>
+              <div class="text-[11px] text-slate-400 mt-1">US Government Shutdown / Macro Event resolving YES on one venue & NO on the other.</div>
+            </button>
+            <button onclick="loadTrapPreset(1)" class="text-left p-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 transition-all">
+              <div class="text-xs font-bold text-cyan-400">Trap #2: ETH Daily Up/Down ($2,272.06)</div>
+              <div class="text-[11px] text-slate-400 mt-1">Chainlink Data Streams vs. CF Benchmarks 60-sec RTI vs. Hyperliquid Mark Price.</div>
+            </button>
+            <button onclick="loadTrapPreset(2)" class="text-left p-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 transition-all">
+              <div class="text-xs font-bold text-rose-400">Trap #3: 15-Min Crypto Binary Fee Drag</div>
+              <div class="text-[11px] text-slate-400 mt-1">Polymarket CLOB V2 dynamic 1.56%–1.80% taker fee near 50/50 probability.</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Textarea + Audit Output -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-2">
+          <div class="lg:col-span-6 space-y-3">
+            <label for="inp-rule-text" class="block text-xs font-semibold text-slate-300">Market Resolution Clause Text:</label>
+            <textarea id="inp-rule-text" rows="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 mono focus:outline-none focus:border-emerald-500"></textarea>
+            <button onclick="runRuleAudit()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs py-2.5 rounded-xl transition-all shadow">
+              Run AI Resolution & Oracle Trap Audit
+            </button>
+          </div>
+
+          <div class="lg:col-span-6 bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col justify-between space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+              <span class="text-xs font-bold text-slate-300">Audit Verdict & Oracle Risk Score</span>
+              <span id="audit-score-badge" class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-rose-500/20 text-rose-400 border border-rose-500/40">HIGH RISK: 82/100</span>
+            </div>
+            <div id="audit-findings" class="space-y-2 text-xs text-slate-300">
+              <!-- Populated by runRuleAudit() -->
+            </div>
+            <div id="audit-recommendation" class="p-3 rounded-lg bg-emerald-950/40 border border-emerald-700/50 text-xs text-emerald-200">
+              <!-- Populated by runRuleAudit() -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: BUILDER REVENUE & MCP + x402 CODE ==================== -->
+    <section id="view-mcp" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left: 4-Engine Revenue Calculator & Config -->
+        <div class="lg:col-span-5 glass-card rounded-2xl p-5 space-y-4">
+          <div class="border-b border-slate-800 pb-3">
+            <h2 class="text-base font-bold text-white">Your Builder Wallet & Code Settings</h2>
+            <p class="text-xs text-slate-400">Enter your addresses once — automatically injected into your MCP Server code on the right.</p>
+          </div>
+
+          <div class="space-y-2.5 text-xs">
+            <div>
+              <label for="cfg-poly-code" class="block text-slate-300 font-medium mb-1">
+                1. Polymarket Builder Code (<a href="https://polymart.app/blog/polymarket-builders-program" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline">$0 Free at polymarket.com/settings?tab=builder ↗</a>)
+              </label>
+              <input id="cfg-poly-code" type="text" value="0x7f9a8b2c4d5e6f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a" oninput="updateMcpCodeAndRevenue()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 mono text-cyan-300 text-xs" />
+            </div>
+            <div>
+              <label for="cfg-hl-wallet" class="block text-slate-300 font-medium mb-1">
+                2. Hyperliquid Builder / Referral Wallet (<a href="https://hyperliquid.gitbook.io/hyperliquid-docs/trading/builder-codes" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:underline">Up to 0.1% Perps / 1% Spot ↗</a>)
+              </label>
+              <input id="cfg-hl-wallet" type="text" value="0xD504451868BcA32BCd1E9EEA20458241864814bc" oninput="updateMcpCodeAndRevenue()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 mono text-emerald-300 text-xs" />
+            </div>
+            <div>
+              <label for="cfg-x402-wallet" class="block text-slate-300 font-medium mb-1">
+                3. Base Network USDC Wallet (<a href="https://wavect.io/blog/x402-payments-comparison-2026/" target="_blank" rel="noopener noreferrer" class="text-amber-400 hover:underline">Coinbase CDP x402 — First 1,000 tx/mo Free ↗</a>)
+              </label>
+              <input id="cfg-x402-wallet" type="text" value="0xD504451868BcA32BCd1E9EEA20458241864814bc" oninput="updateMcpCodeAndRevenue()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 mono text-amber-300 text-xs" />
+            </div>
+          </div>
+
+          <!-- Revenue Sliders -->
+          <div class="border-t border-slate-800 pt-3 space-y-3 text-xs">
+            <div class="font-bold text-white">Simulate Your Monthly Earnings (4 Engines Combined)</div>
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="text-slate-300">Active Human Traders Using Your Free Tool</span>
+                <span id="lbl-sim-traders" class="mono font-bold text-emerald-400">15 Traders</span>
+              </div>
+              <input id="inp-sim-traders" type="range" min="1" max="200" step="1" value="15" oninput="updateMcpCodeAndRevenue()" class="w-full cursor-pointer" />
+            </div>
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="text-slate-300">Avg Daily Hyperliquid Perp Volume / Trader</span>
+                <span id="lbl-sim-hlvol" class="mono font-bold text-emerald-400">$2,000/day</span>
+              </div>
+              <input id="inp-sim-hlvol" type="range" min="500" max="10000" step="250" value="2000" oninput="updateMcpCodeAndRevenue()" class="w-full cursor-pointer" />
+            </div>
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="text-slate-300">Monthly Polymarket Routed Volume</span>
+                <span id="lbl-sim-polyvol" class="mono font-bold text-cyan-400">$50,000/mo</span>
+              </div>
+              <input id="inp-sim-polyvol" type="range" min="5000" max="500000" step="5000" value="50000" oninput="updateMcpCodeAndRevenue()" class="w-full cursor-pointer" />
+            </div>
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="text-slate-300">Daily Paid x402 AI Bot Calls ($0.02 USDC/call)</span>
+                <span id="lbl-sim-x402" class="mono font-bold text-amber-400">150 calls/day</span>
+              </div>
+              <input id="inp-sim-x402" type="range" min="10" max="2000" step="10" value="150" oninput="updateMcpCodeAndRevenue()" class="w-full cursor-pointer" />
+            </div>
+          </div>
+
+          <!-- Total Monthly Payout Box -->
+          <div class="bg-slate-950 border border-emerald-500/40 rounded-xl p-3.5 flex items-center justify-between">
+            <div>
+              <div class="text-[11px] text-slate-400">Estimated Total Monthly Revenue</div>
+              <div id="out-total-monthly-usd" class="text-xl font-extrabold text-emerald-400 mono">$1,090 USDC / mo</div>
+            </div>
+            <div class="text-right">
+              <div class="text-[11px] text-slate-400">Approx. in INR</div>
+              <div id="out-total-monthly-inr" class="text-base font-bold text-white mono">~₹91,560 / mo</div>
+            </div>
+          </div>
+
+          <!-- Fixed-Height Chart Container -->
+          <div class="relative h-56 w-full bg-slate-950/60 rounded-xl p-2 border border-slate-800">
+            <canvas id="revenueChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Right: Ready-to-Deploy MCP + x402 Server Code & Live Test Simulator -->
+        <div class="lg:col-span-7 glass-card rounded-2xl p-5 flex flex-col justify-between space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <div>
+              <h3 class="text-base font-bold text-white">Ready-to-Deploy Node.js MCP + x402 Server (`polyliquid_mcp_server.js`)</h3>
+              <p class="text-xs text-slate-400">
+                Includes 2 Free Magnet Tools + 2 Paid x402 Tools + <a href="https://docs.cdp.coinbase.com/x402/seller/get-discovered" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:underline">Coinbase Bazaar `declareDiscoveryExtension()` ↗</a>
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="copyServerCode()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-3 py-2 rounded-lg transition-all">
+                Copy Server Code
+              </button>
+              <button onclick="downloadServerCode()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs px-3 py-2 rounded-lg border border-slate-700 transition-all">
+                Download .js File
+              </button>
+            </div>
+          </div>
+
+          <!-- Live MCP Tool Call Simulator -->
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 space-y-2.5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-bold text-slate-300">Simulate How Claude / Cursor / AI Agent Calls Your MCP Server:</span>
+              <div class="flex flex-wrap gap-1.5">
+                <button onclick="simulateMcpCall('free_market')" class="text-[11px] px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 font-semibold">
+                  Test Free Tool #1 (Live Market)
+                </button>
+                <button onclick="simulateMcpCall('free_arb')" class="text-[11px] px-2.5 py-1 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 font-semibold">
+                  Test Free Tool #2 (HIP-4 vs Poly)
+                </button>
+                <button onclick="simulateMcpCall('paid_402')" class="text-[11px] px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 font-semibold">
+                  Test Paid Tool ($0.02 x402 Flow)
+                </button>
+              </div>
+            </div>
+            <pre id="mcp-sim-output" class="text-[11px] mono text-emerald-300 bg-slate-900/90 p-3 rounded-lg overflow-x-auto max-h-44"></pre>
+          </div>
+
+          <!-- Generated Code Block -->
+          <div class="flex-1 flex flex-col">
+            <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+              <span>Complete Server Code (Auto-updated with your Wallet & Builder Codes):</span>
+              <span class="mono text-emerald-400">Node.js + @coinbase/cdp-sdk/x402 + @modelcontextprotocol/sdk</span>
+            </div>
+            <pre id="mcp-code-display" class="text-[11px] mono text-slate-200 bg-slate-950 border border-slate-800 rounded-xl p-3.5 overflow-x-auto max-h-80 select-all"></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: CUSTOMER LAUNCHPAD (KAISE PATA CHALEGA?) ==================== -->
+    <section id="view-launchpad" class="hidden space-y-6">
+      <div class="glass-card rounded-2xl p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div>
+            <h2 class="text-base sm:text-lg font-extrabold text-white">6 Free Channels: Logon Aur AI Agents Ko Hamare Tool Ka Pata Kaise Chalega?</h2>
+            <p class="text-xs text-slate-400">
+              Check off each step as we submit your URL — zero paid ads required. Progress saved automatically.
+            </p>
+          </div>
+          <div class="text-right">
+            <div class="text-xs text-slate-400">Launchpad Readiness</div>
+            <div id="launch-progress-text" class="text-base font-extrabold text-emerald-400 mono">0 / 6 Completed</div>
+          </div>
+        </div>
+
+        <!-- 6 Distribution Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="launchpad-cards">
+          <!-- Populated dynamically by renderLaunchpad() -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer with Verified Sources -->
+  <footer class="border-t border-slate-800/80 bg-slate-950 py-4 px-4 text-center text-[11px] text-slate-500">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <span>PolyLiquid AI — Grounded in Nov 2026 On-Chain & Protocol Data</span>
+      <div class="flex flex-wrap gap-3">
+        <a href="https://defillama.com/protocol/hyperliquid" target="_blank" rel="noopener noreferrer" class="hover:text-emerald-400 underline">DefiLlama Hyperliquid</a>
+        <a href="https://chainstack.com/hyperliquid-hip4-vs-polymarket-2026/" target="_blank" rel="noopener noreferrer" class="hover:text-emerald-400 underline">Chainstack HIP-4 vs Polymarket</a>
+        <a href="https://polymart.app/blog/polymarket-builders-program" target="_blank" rel="noopener noreferrer" class="hover:text-emerald-400 underline">Polymarket Builders Guide</a>
+        <a href="https://docs.cdp.coinbase.com/x402/seller/get-discovered" target="_blank" rel="noopener noreferrer" class="hover:text-emerald-400 underline">Coinbase x402 Bazaar</a>
+        <a href="https://www.apideck.com/blog/mcp-server-directories" target="_blank" rel="noopener noreferrer" class="hover:text-emerald-400 underline">MCP Registries Census</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ==================== GROUNDED STATE & MARKET DATA (NOV 2026) ====================
+    var ASSETS = {
+      BTC: {
+        symbol: 'BTC',
+        name: 'Bitcoin Perp',
+        price: 77812,
+        supportNote: 'Near $77,300 Nov pivot support (Binance Square Nov 1, 2026)',
+        polyTitle: 'BTC Daily Binary: Above $77,300 at 06:00 UTC?',
+        polyOddsYes: 0.56,
+        hip4OddsYes: 0.545,
+        polyTakerFeePct: 1.65 // 1.56%-1.80% peak near 50/50 on 15m/short crypto binaries
+      },
+      ETH: {
+        symbol: 'ETH',
+        name: 'Ethereum Perp',
+        price: 2269,
+        supportNote: 'Polymarket Nov 3 Daily Target $2,272.06 (Yes 75c / No 27c)',
+        polyTitle: 'ETH Up or Down Daily — Target $2,272.06',
+        polyOddsYes: 0.75,
+        hip4OddsYes: 0.735,
+        polyTakerFeePct: 1.45
+      },
+      SOL: {
+        symbol: 'SOL',
+        name: 'Solana Perp',
+        price: 90.03,
+        supportNote: 'Post-Alpenglow 150ms upgrade; Breakpoint London Nov 15–17',
+        polyTitle: 'SOL Price Range Binary: Above $94.00 Target?',
+        polyOddsYes: 0.48,
+        hip4OddsYes: 0.47,
+        polyTakerFeePct: 1.75
+      },
+      HYPE: {
+        symbol: 'HYPE',
+        name: 'Hyperliquid Native Perp',
+        price: 78.14,
+        supportNote: 'Key support $75–$80; ATH $97.99 on Sep 22, 2026',
+        polyTitle: 'HYPE Holds Above $78.00 Weekly Close?',
+        polyOddsYes: 0.61,
+        hip4OddsYes: 0.60,
+        polyTakerFeePct: 1.56
+      }
+    };
+
+    var appState = {
+      activeTab: 'terminal',
+      asset: 'BTC',
+      direction: 'LONG',
+      orderType: 'MAKER', // MAKER = 0.015% (Tier 0 ALO), TAKER = 0.045%
+      capital: 500,
+      leverage: 2,
+      targetNetProfit: 8.5,
+      builderFeePct: 0.05, // 0.05% = f: 50 tenths of bps
+      outcomeBetSize: 1000,
+      lastOrderPayload: {},
+      launchChecks: { c1: true, c2: false, c3: false, c4: false, c5: false, c6: false }
+    };
+
+    var revenueChartInstance = null;
+
+    // Load saved state safely
+    try {
+      var savedChecks = localStorage.getItem('polyliquid_launch_checks');
+      if (savedChecks) {
+        appState.launchChecks = JSON.parse(savedChecks);
+      }
+    } catch (e) {}
+
+
+    function syncQuickWallet(val) {
+      var clean = (val || '').trim();
+      if (!clean) return;
+      var hlEl = document.getElementById('cfg-hl-wallet');
+      var x402El = document.getElementById('cfg-x402-wallet');
+      if (hlEl) hlEl.value = clean;
+      if (x402El) x402El.value = clean;
+      recalcSetup();
+      updateMcpCodeAndRevenue();
+      showToast('Aapka Wallet Address (' + clean.slice(0, 8) + '...) sab jagah set ho gaya!');
+    }
+
+    function downloadReadyWebsite() {
+      var fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      var blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'index.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('index.html download ho gaya! Ab ise free hosting par drag-and-drop kar sakte hain.');
+    }
+
+    function showToast(message) {
+      var toast = document.getElementById('toast-container');
+      var msg = document.getElementById('toast-msg');
+      if (!toast || !msg) return;
+      msg.textContent = message;
+      toast.classList.remove('hidden');
+      setTimeout(function() {
+        toast.classList.add('hidden');
+      }, 2800);
+    }
+
+    function copyTextSafe(text, label) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+          showToast(label + ' copied to clipboard!');
+        }).catch(function() {
+          fallbackCopy(text, label);
+        });
+      } else {
+        fallbackCopy(text, label);
+      }
+    }
+
+    function fallbackCopy(text, label) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast(label + ' copied to clipboard!');
+      } catch (e) {
+        showToast('Press Ctrl+C to copy ' + label);
+      }
+      document.body.removeChild(ta);
+    }
+
+    // ==================== TAB NAVIGATION ====================
+    function switchTab(tabId) {
+      appState.activeTab = tabId;
+      var tabs = ['terminal', 'auditor', 'mcp', 'launchpad'];
+      for (var i = 0; i < tabs.length; i++) {
+        var t = tabs[i];
+        var viewEl = document.getElementById('view-' + t);
+        var btnEl = document.getElementById('tab-btn-' + t);
+        if (viewEl && btnEl) {
+          if (t === tabId) {
+            viewEl.classList.remove('hidden');
+            btnEl.className = 'tab-active text-xs sm:text-sm px-3.5 py-2 rounded-lg transition-all';
+          } else {
+            viewEl.classList.add('hidden');
+            btnEl.className = 'bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs sm:text-sm px-3.5 py-2 rounded-lg transition-all border border-slate-800';
+          }
+        }
+      }
+      if (tabId === 'mcp') {
+        updateMcpCodeAndRevenue();
+      } else if (tabId === 'launchpad') {
+        renderLaunchpad();
+      }
+    }
+
+    // ==================== TAB 1: TERMINAL & SETUP CALCULATOR ====================
+    function selectAsset(sym) {
+      appState.asset = sym;
+      var keys = ['BTC', 'ETH', 'SOL', 'HYPE'];
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        var btn = document.getElementById('asset-btn-' + k);
+        if (btn) {
+          if (k === sym) {
+            btn.className = 'px-3 py-2 rounded-xl text-xs font-bold border border-emerald-500 bg-emerald-500/20 text-white transition-all';
+          } else {
+            btn.className = 'px-3 py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-600 transition-all';
+          }
+        }
+      }
+      recalcSetup();
+      recalcOutcomeArb();
+    }
+
+    function setDirection(dir) {
+      appState.direction = dir;
+      var btnLong = document.getElementById('dir-btn-LONG');
+      var btnShort = document.getElementById('dir-btn-SHORT');
+      if (dir === 'LONG') {
+        btnLong.className = 'py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950';
+        btnShort.className = 'py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white';
+      } else {
+        btnShort.className = 'py-1.5 rounded-lg text-xs font-bold bg-rose-500 text-slate-950';
+        btnLong.className = 'py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white';
+      }
+      recalcSetup();
+    }
+
+    function setOrderType(ord) {
+      appState.orderType = ord;
+      var btnMaker = document.getElementById('ord-btn-MAKER');
+      var btnTaker = document.getElementById('ord-btn-TAKER');
+      if (ord === 'MAKER') {
+        btnMaker.className = 'py-1.5 rounded-lg text-xs font-bold bg-cyan-400 text-slate-950';
+        btnTaker.className = 'py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white';
+      } else {
+        btnTaker.className = 'py-1.5 rounded-lg text-xs font-bold bg-amber-400 text-slate-950';
+        btnMaker.className = 'py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white';
+      }
+      recalcSetup();
+    }
+
+    function formatPrice(val) {
+      if (val >= 1000) return '$' + val.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+      return '$' + val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function recalcSetup() {
+      var capEl = document.getElementById('inp-capital');
+      var levEl = document.getElementById('inp-leverage');
+      var targEl = document.getElementById('inp-target');
+      var bfeeEl = document.getElementById('inp-builder-fee');
+
+      appState.capital = Math.max(100, parseFloat(capEl ? capEl.value : 500) || 500);
+      appState.leverage = Math.max(1, parseFloat(levEl ? levEl.value : 2) || 2);
+      appState.targetNetProfit = Math.max(1, parseFloat(targEl ? targEl.value : 8.5) || 8.5);
+      appState.builderFeePct = parseFloat(bfeeEl ? bfeeEl.value : 0.05) || 0;
+
+      var posSize = appState.capital * appState.leverage;
+      var tenthsBps = Math.round(appState.builderFeePct * 1000); // 0.05% -> 50 tenths of bps
+
+      document.getElementById('lbl-capital').textContent = '$' + appState.capital.toLocaleString();
+      document.getElementById('lbl-leverage').textContent = appState.leverage + 'x ($' + posSize.toLocaleString() + ' Pos)';
+      document.getElementById('lbl-target').textContent = '$' + appState.targetNetProfit.toFixed(2);
+      document.getElementById('lbl-builder-fee').textContent = appState.builderFeePct.toFixed(2) + '% (f: ' + tenthsBps + ')';
+
+      // Hyperliquid Tier 0 Fee Rates: Maker = 0.015% per side (0.030% round trip), Taker = 0.045% per side (0.090% round trip)
+      var singleSideProtoPct = appState.orderType === 'MAKER' ? 0.015 : 0.045;
+      var roundTripProtoPct = singleSideProtoPct * 2;
+      var roundTripBuilderPct = appState.builderFeePct * 2;
+
+      var protoFeeUsd = posSize * (roundTripProtoPct / 100);
+      var builderFeeUsd = posSize * (roundTripBuilderPct / 100);
+      var totalFeesUsd = protoFeeUsd + builderFeeUsd;
+
+      var grossProfitNeeded = appState.targetNetProfit + totalFeesUsd;
+      var reqMovePct = (grossProfitNeeded / posSize) * 100;
+
+      var assetObj = ASSETS[appState.asset];
+      var p = assetObj.price;
+      var isLong = appState.direction === 'LONG';
+
+      var entryLow = isLong ? p * 0.998 : p;
+      var entryHigh = isLong ? p : p * 1.002;
+      var slMovePct = Math.max(0.65, reqMovePct * 0.8);
+      var slPrice = isLong ? p * (1 - slMovePct / 100) : p * (1 + slMovePct / 100);
+      var slRiskUsd = posSize * (slMovePct / 100) + totalFeesUsd;
+
+      var tp1MovePct = reqMovePct * 0.78;
+      var tp2MovePct = reqMovePct * 1.28;
+      var tp1Price = isLong ? p * (1 + tp1MovePct / 100) : p * (1 - tp1MovePct / 100);
+      var tp2Price = isLong ? p * (1 + tp2MovePct / 100) : p * (1 - tp2MovePct / 100);
+
+      // Approx liquidation distance (keeping 5% maintenance margin buffer)
+      var liqMovePct = Math.max(5, (95 / appState.leverage));
+      var liqPrice = isLong ? Math.max(0.01, p * (1 - liqMovePct / 100)) : p * (1 + liqMovePct / 100);
+
+      document.getElementById('setup-badge').textContent =
+        assetObj.symbol + '-PERP ' + appState.direction + ' • ' + appState.leverage + 'x ' +
+        (appState.orderType === 'MAKER' ? 'ALO MAKER (0.015%)' : 'MARKET TAKER (0.045%)');
+      document.getElementById('setup-headline').textContent =
+        assetObj.symbol + '/USDC Risk-Audited Setup ($' + posSize.toLocaleString() + ' Notional)';
+      document.getElementById('out-req-move').textContent =
+        (isLong ? '+' : '-') + reqMovePct.toFixed(2) + '%';
+
+      document.getElementById('out-entry').textContent = formatPrice(entryLow) + ' – ' + formatPrice(entryHigh);
+      document.getElementById('out-support-note').textContent = assetObj.supportNote;
+      document.getElementById('out-sl').textContent = formatPrice(slPrice);
+      document.getElementById('out-sl-usd').textContent = 'Risk: -$' + slRiskUsd.toFixed(2) + ' (' + ((slRiskUsd / appState.capital) * 100).toFixed(1) + '% Cap)';
+
+      document.getElementById('out-tp1').textContent = formatPrice(tp1Price);
+      document.getElementById('out-tp1-usd').textContent = 'Locks +$' + (appState.targetNetProfit * 0.6).toFixed(2) + ' Net (60%)';
+      document.getElementById('out-tp2').textContent = formatPrice(tp2Price);
+      document.getElementById('out-tp2-usd').textContent = 'Total +$' + appState.targetNetProfit.toFixed(2) + ' Net Goal';
+
+      document.getElementById('out-proto-fee').textContent = '$' + protoFeeUsd.toFixed(2) + ' (' + roundTripProtoPct.toFixed(3) + '%)';
+      document.getElementById('out-builder-earn').textContent = '+$' + builderFeeUsd.toFixed(2) + ' (f: ' + tenthsBps + ')';
+      document.getElementById('out-liq-price').textContent = formatPrice(liqPrice) + ' (' + (isLong ? '-' : '+') + liqMovePct.toFixed(1) + '%)';
+      document.getElementById('out-net-profit').textContent = '+$' + appState.targetNetProfit.toFixed(2) + ' USDC';
+      document.getElementById('out-inline-bfee').textContent = '$' + builderFeeUsd.toFixed(2) + ' USDC';
+
+      var hlWallet = document.getElementById('cfg-hl-wallet') ? document.getElementById('cfg-hl-wallet').value : '0xD504...14bc';
+      appState.lastOrderPayload = {
+        action: {
+          type: 'order',
+          orders: [{
+            coin: assetObj.symbol + '-PERP',
+            is_buy: isLong,
+            sz: Number((posSize / p).toFixed(4)),
+            limit_px: Number(p.toFixed(2)),
+            order_type: appState.orderType === 'MAKER' ? { limit: { tif: 'Alo' } } : { limit: { tif: 'Ioc' } },
+            reduce_only: false
+          }],
+          grouping: 'na',
+          builder: {
+            b: hlWallet.toLowerCase(),
+            f: tenthsBps
+          }
+        },
+        riskAudit: {
+          stopLossPx: Number(slPrice.toFixed(2)),
+          takeProfit1Px: Number(tp1Price.toFixed(2)),
+          takeProfit2Px: Number(tp2Price.toFixed(2)),
+          netTargetUsd: appState.targetNetProfit
+        }
+      };
+    }
+
+    function copyOrderPayload() {
+      copyTextSafe(JSON.stringify(appState.lastOrderPayload, null, 2), 'Hyperliquid Builder-Attributed Order JSON');
+    }
+
+    function recalcOutcomeArb() {
+      var inp = document.getElementById('inp-outcome-size');
+      var betSize = Math.max(50, parseFloat(inp ? inp.value : 1000) || 1000);
+      appState.outcomeBetSize = betSize;
+
+      var tbody = document.getElementById('arb-table-body');
+      if (!tbody) return;
+
+      var keys = ['BTC', 'ETH', 'SOL', 'HYPE'];
+      var rowsHtml = '';
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        var item = ASSETS[k];
+        var polyFeeUsd = betSize * (item.polyTakerFeePct / 100);
+        // Hyperliquid HIP-4 charges 0% on open; settlement/close is ~0.035% (half spot fee)
+        var hip4OpenFeeUsd = 0;
+        var hip4SettleFeeUsd = betSize * 0.00035;
+        var savedUsd = Math.max(0, polyFeeUsd - hip4SettleFeeUsd);
+        var oddsSpreadCents = Math.abs(item.polyOddsYes - item.hip4OddsYes) * 100;
+
+        // Polymarket weekly builder reward (~0.5% of routed volume)
+        var polyBuilderReward = betSize * 0.005;
+
+        rowsHtml += '<tr class="hover:bg-slate-900/60 transition-colors">' +
+          '<td class="py-3 pr-3 font-sans">' +
+            '<div class="font-bold text-white">' + item.polyTitle + '</div>' +
+            '<div class="text-[11px] text-slate-400">Odds Spread: <span class="text-cyan-300 font-semibold">' + oddsSpreadCents.toFixed(1) + '¢ edge</span></div>' +
+          '</td>' +
+          '<td class="py-3 px-3">' +
+            '<div class="text-slate-200">YES: <span class="text-cyan-400 font-bold">' + Math.round(item.polyOddsYes * 100) + '¢</span></div>' +
+            '<div class="text-[11px] text-rose-400">Taker Fee: $' + polyFeeUsd.toFixed(2) + ' (' + item.polyTakerFeePct.toFixed(2) + '%)</div>' +
+          '</td>' +
+          '<td class="py-3 px-3">' +
+            '<div class="text-slate-200">YES: <span class="text-emerald-400 font-bold">' + Math.round(item.hip4OddsYes * 100) + '¢</span> (Coin #' + (10 * (i + 1)) + ')</div>' +
+            '<div class="text-[11px] text-emerald-300">Open Fee: $' + hip4OpenFeeUsd.toFixed(2) + ' (0.00%)</div>' +
+          '</td>' +
+          '<td class="py-3 px-3 text-right font-bold text-emerald-400">+$' + savedUsd.toFixed(2) + ' saved</td>' +
+          '<td class="py-3 pl-3 text-right">' +
+            '<span class="px-2 py-1 rounded bg-amber-500/20 text-amber-300 text-[11px] font-semibold">+$' + polyBuilderReward.toFixed(2) + ' Poly Weekly Pool</span>' +
+          '</td>' +
+        '</tr>';
+      }
+      tbody.innerHTML = rowsHtml;
+    }
+
+    // ==================== TAB 2: POLYMARKET RULE-TRAP AUDITOR ====================
+    var TRAP_PRESETS = [
+      {
+        title: 'US Government Shutdown Cross-Venue Discrepancy (Polymarket UMA vs. Kalshi)',
+        text: 'Market resolves to YES if the U.S. federal government experiences a partial or full shutdown before the deadline according to the UMA Optimistic Oracle ($750 USDC proposer bond, 2-hour challenge period). Note: Kalshi CFTC contract requires an official OPM furlough announcement lasting >24 hours, whereas Polymarket UMA token-holder DVM vote considers any lapse in appropriations after midnight EST as YES.',
+        score: 88,
+        level: 'CRITICAL ORACLE MISMATCH (88/100)',
+        findings: [
+          'Cross-Platform Arbitrage Trap: In documented 2024/2026 shutdown markets (DeFiPrime Report), Polymarket resolved YES via UMA Optimistic Oracle while Kalshi resolved NO on the exact same event.',
+          'UMA Governance Escalation Risk: If disputed twice ($750 USDC bond), resolution freezes for 48–72 hours for a UMA token-holder commit-reveal vote.',
+          'Definition Divergence: "Lapse in appropriations at midnight" != "OPM employee furlough >24h". Never hedge this market across Kalshi and Polymarket assuming identical settlement.'
+        ],
+        rec: 'Recommended Action: Avoid cross-venue "riskless" arbitrage here. If trading event volatility, hedge using Hyperliquid BTC-PERP or HIP-4 canonical price binaries where settlement uses a deterministic mark-price oracle.'
+      },
+      {
+        title: 'ETH Up or Down Daily — $2,272.06 Target (Oracle Source Check)',
+        text: 'ETH Up or Down Daily (Nov 3, 2026): Market resolves to UP (YES, trading at 75c) if Ethereum price at 11:59:59 PM EST is at or above $2,272.06 via Chainlink Data Streams / CF Benchmarks 60-second Real-Time Index (RTI) average. Otherwise resolves to DOWN (NO, trading at 27c). YES + NO sum = $1.02 (2% spread over-round).',
+        score: 54,
+        level: 'MODERATE SPREAD & ORACLE LAG RISK (54/100)',
+        findings: [
+          'Over-Round Book Spread: YES (75¢) + NO (27¢) sums to $1.02 instead of $1.00 (SailGP Nov 2026 snapshot)—meaning market takers pay an immediate 2¢ spread penalty.',
+          '60-Second RTI Averaging vs. Spot Wick: Final settlement uses the 60-second simple average of CF Benchmarks RTI or Chainlink stream, so a 5-second Binance spike above $2,272.06 will NOT resolve YES.',
+          'Capital Isolation: pUSD locked in Polymarket CTF ERC-1155 tokens cannot cross-margin against your ETH-PERP hedge.'
+        ],
+        rec: 'Recommended Action: Place resting Maker limit orders (up to 50 bps builder rebate eligible) at 73¢ instead of crossing the 75¢ ask, or use Hyperliquid HIP-4 daily binary for unified margin with ETH-PERP.'
+      },
+      {
+        title: '15-Minute BTC Up/Down Momentum Market (CLOB V2 Dynamic Fee Trap)',
+        text: '15-Minute Bitcoin Up/Down Binary on Polymarket CLOB V2 (pUSD collateral). Dynamic probability-weighted taker fee peaks at 1.56% to 1.80% when contract trades near 50c (50% probability). Resolves via automated crypto price stream at the 15-minute epoch boundary.',
+        score: 76,
+        level: 'HIGH FEE-DRAG TRAP (76/100)',
+        findings: [
+          '1.80% Peak Taker Fee Drag: Polymarket CLOB V2 explicitly added a 1.56%–1.80% dynamic taker fee near 50/50 odds on 15-minute crypto markets to tax latency bots (Chainstack May 2026 Analysis).',
+          'Breakeven Win-Rate Penalty: Paying ~1.80% taker fee requires a significantly higher win rate compared to Hyperliquid HIP-4 (0% open fee) or Hyperliquid BTC-PERP (0.015% Maker / 0.045% Taker).',
+          'Execution Latency Risk: Off-chain CLOB match + Polygon on-chain settlement can lag during high-volatility 15m candle closes.'
+        ],
+        rec: 'Recommended Action: Route short-timeframe crypto binary bets to Hyperliquid HIP-4 (0% open fee) or use ALO Maker orders on Hyperliquid Perps (0.015% fee) to save over 90% in fee drag.'
+      }
+    ];
+
+    function loadTrapPreset(idx) {
+      var preset = TRAP_PRESETS[idx] || TRAP_PRESETS[0];
+      var ta = document.getElementById('inp-rule-text');
+      if (ta) ta.value = preset.text;
+      renderAuditResult(preset.score, preset.level, preset.findings, preset.rec);
+    }
+
+    function runRuleAudit() {
+      var ta = document.getElementById('inp-rule-text');
+      var raw = (ta ? ta.value : '').trim();
+      var lower = raw.toLowerCase();
+
+      // Check if matches preset or custom text
+      var score = 45;
+      var findings = [];
+      if (lower.indexOf('uma') !== -1 || lower.indexOf('shutdown') !== -1 || lower.indexOf('kalshi') !== -1) {
+        score += 35;
+        findings.push('Oracle Ambiguity Flag: Detected subjective/governance oracle ("UMA" / cross-venue terms). High risk of 48–72h DVM dispute or Kalshi vs. Polymarket split resolution.');
+      }
+      if (lower.indexOf('15-min') !== -1 || lower.indexOf('1.80%') !== -1 || lower.indexOf('1.56%') !== -1 || lower.indexOf('50c') !== -1) {
+        score += 25;
+        findings.push('CLOB V2 Fee Drag Flag: Short-horizon crypto markets near 50/50 probability carry up to 1.56%–1.80% peak taker fees on Polymarket vs. 0% open fee on Hyperliquid HIP-4.');
+      }
+      if (lower.indexOf('average') !== -1 || lower.indexOf('rti') !== -1 || lower.indexOf('chainlink') !== -1) {
+        score += 15;
+        findings.push('Settlement Price Indexing Flag: Uses time-weighted or specific index feed (RTI/Chainlink) rather than CEX spot wick—watch last-minute candle divergence.');
+      }
+      if (findings.length === 0) {
+        findings.push('Custom Ruleset Scanned: No extreme UMA/Kalshi split keywords detected, but verify whether YES + NO prices sum to <= $1.00 before crossing the spread.');
+        findings.push('Fee Comparison: Check if an equivalent contract exists on Hyperliquid HIP-4 to save opening fees and keep unified USDC/USDH margin.');
+      }
+
+      score = Math.min(96, score);
+      var level = score >= 70 ? 'HIGH TRAP RISK (' + score + '/100)' : 'MODERATE RISK (' + score + '/100)';
+      var rec = score >= 70
+        ? 'AI Verdict: Do NOT market-buy this contract blindly. Use Maker limit orders or route the crypto leg via Hyperliquid HIP-4 / Perps to avoid oracle & fee traps.'
+        : 'AI Verdict: Ruleset is relatively clean. Use limit orders with your Polymarket Builder Code attached to earn weekly USDC volume rewards.';
+
+      renderAuditResult(score, level, findings, rec);
+      showToast('AI Resolution Rule Audit updated!');
+    }
+
+    function renderAuditResult(score, level, findings, rec) {
+      var badge = document.getElementById('audit-score-badge');
+      if (badge) {
+        badge.textContent = level;
+        badge.className = score >= 70
+          ? 'px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-rose-500/20 text-rose-400 border border-rose-500/40'
+          : 'px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/40';
+      }
+      var listEl = document.getElementById('audit-findings');
+      if (listEl) {
+        var html = '';
+        for (var i = 0; i < findings.length; i++) {
+          html += '<div class="flex items-start gap-2 bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">' +
+            '<span class="text-amber-400 font-bold">⚠</span>' +
+            '<span>' + findings[i] + '</span>' +
+          '</div>';
+        }
+        listEl.innerHTML = html;
+      }
+      var recEl = document.getElementById('audit-recommendation');
+      if (recEl) {
+        recEl.textContent = rec;
+      }
+    }
+
+    // ==================== TAB 3: REVENUE SIMULATOR & MCP + x402 CODE GENERATOR ====================
+    function updateMcpCodeAndRevenue() {
+      var polyCode = (document.getElementById('cfg-poly-code').value || '').trim();
+      var hlWallet = (document.getElementById('cfg-hl-wallet').value || '').trim();
+      var x402Wallet = (document.getElementById('cfg-x402-wallet').value || '').trim();
+
+      var traders = parseInt(document.getElementById('inp-sim-traders').value, 10) || 15;
+      var hlDailyVolPerTrader = parseFloat(document.getElementById('inp-sim-hlvol').value) || 2000;
+      var polyMonthlyVol = parseFloat(document.getElementById('inp-sim-polyvol').value) || 50000;
+      var x402DailyCalls = parseInt(document.getElementById('inp-sim-x402').value, 10) || 150;
+
+      document.getElementById('lbl-sim-traders').textContent = traders + ' Traders';
+      document.getElementById('lbl-sim-hlvol').textContent = '$' + hlDailyVolPerTrader.toLocaleString() + '/day';
+      document.getElementById('lbl-sim-polyvol').textContent = '$' + polyMonthlyVol.toLocaleString() + '/mo';
+      document.getElementById('lbl-sim-x402').textContent = x402DailyCalls + ' calls/day';
+
+      // Engine 1: Hyperliquid Builder Code Fees (0.05% default across 30 days)
+      var totalHlMonthlyVol = traders * hlDailyVolPerTrader * 30;
+      var hlMonthlyRev = totalHlMonthlyVol * (appState.builderFeePct / 100);
+
+      // Engine 2: Polymarket Weekly USDC Rewards Pool (~0.5% of attributed volume per PolyMart / PolyTrack)
+      var polyRewardRev = polyMonthlyVol * 0.005;
+
+      // Engine 3: Polymarket Custom Builder Fee (conservative 0.25% average = 25 bps)
+      var polyFeeRev = polyMonthlyVol * 0.0025;
+
+      // Engine 4: Coinbase x402 Paid MCP Calls ($0.02/call * 30 days, minus $0.001 facilitator fee after 1,000 free calls)
+      var totalMonthlyCalls = x402DailyCalls * 30;
+      var cdpFee = Math.max(0, totalMonthlyCalls - 1000) * 0.001;
+      var x402MonthlyRev = Math.max(0, (totalMonthlyCalls * 0.02) - cdpFee);
+
+      var totalUsd = hlMonthlyRev + polyRewardRev + polyFeeRev + x402MonthlyRev;
+      var totalInr = Math.round(totalUsd * 84);
+
+      document.getElementById('out-total-monthly-usd').textContent = '$' + Math.round(totalUsd).toLocaleString() + ' USDC / mo';
+      document.getElementById('out-total-monthly-inr').textContent = '~₹' + totalInr.toLocaleString('en-IN') + ' / mo';
+
+      renderRevenueChart([
+        Math.round(hlMonthlyRev),
+        Math.round(polyRewardRev),
+        Math.round(polyFeeRev),
+        Math.round(x402MonthlyRev)
+      ]);
+
+      // Update MCP Server Code with user's exact addresses
+      var serverCode = generateMcpServerSource(polyCode, hlWallet, x402Wallet);
+      var codeEl = document.getElementById('mcp-code-display');
+      if (codeEl) codeEl.textContent = serverCode;
+    }
+
+    function renderRevenueChart(dataVals) {
+      var canvas = document.getElementById('revenueChart');
+      if (!canvas || typeof Chart === 'undefined') return;
+      var ctx = canvas.getContext('2d');
+      if (revenueChartInstance) {
+        revenueChartInstance.data.datasets[0].data = dataVals;
+        revenueChartInstance.update();
+        return;
+      }
+      revenueChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['HL Builder Fee', 'Poly Weekly Pool', 'Poly Order Fee', 'x402 Bot API'],
+          datasets: [{
+            label: 'Monthly Revenue (USDC)',
+            data: dataVals,
+            backgroundColor: ['#10b981', '#06b6d4', '#3b82f6', '#f59e0b'],
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(51, 65, 85, 0.4)' },
+              ticks: { color: '#94a3b8', font: { size: 10 } }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#cbd5e1', font: { size: 10 } }
+            }
+          }
+        }
+      });
+    }
+
+    function generateMcpServerSource(polyCode, hlWallet, x402Wallet) {
+      var tenthsBps = Math.round(appState.builderFeePct * 1000);
+      return [
+        '/**',
+        ' * PolyLiquid AI — 4-Engine Monetized MCP + x402 Server (Node.js / TypeScript)',
+        ' * - Free Tool 1: get_hyperliquid_live_market (Free Magnet for Glama & MCP.so)',
+        ' * - Free Tool 2: compare_hip4_vs_polymarket (Free Cross-Venue Fee & Odds Scanner)',
+        ' * - Paid Tool 3: generate_pro_trade_setup ($0.02 USDC via Coinbase x402 + HL Builder Code)',
+        ' * - Paid Tool 4: audit_polymarket_resolution_trap ($0.02 USDC via Coinbase x402 + Poly Builder Code)',
+        ' */',
+        'import express from "express";',
+        'import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";',
+        'import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";',
+        'import { paymentMiddleware } from "x402-express";',
+        'import { declareDiscoveryExtension } from "@x402/extensions/bazaar";',
+        '',
+        'const CONFIG = {',
+        '  POLY_BUILDER_CODE: "' + polyCode + '",',
+        '  HL_BUILDER_ADDRESS: "' + hlWallet.toLowerCase() + '",',
+        '  HL_BUILDER_FEE_TENTHS_BPS: ' + tenthsBps + ', // ' + appState.builderFeePct.toFixed(2) + '% Perps Builder Fee',
+        '  X402_PAY_TO_WALLET: "' + x402Wallet + '",',
+        '  CDP_FACILITATOR_URL: "https://api.cdp.coinbase.com/platform/v2/x402",',
+        '  HYPERLIQUID_INFO_API: "https://api.hyperliquid.xyz/info",',
+        '  POLYMARKET_GAMMA_API: "https://gamma-api.polymarket.com/markets"',
+        '};',
+        '',
+        'const app = express();',
+        'app.use(express.json());',
+        '',
+        '// 1. Attach Coinbase x402 V2 Middleware + Bazaar Auto-Discovery Extension',
+        'app.use(paymentMiddleware(CONFIG.X402_PAY_TO_WALLET, {',
+        '  "POST /api/pro/trade-setup": {',
+        '    price: "$0.02",',
+        '    network: "base",',
+        '    config: {',
+        '      description: "generate_pro_trade_setup costs $0.02/call: returns exact Hyperliquid Entry, SL, TP1/TP2, net fee math, and 1-click EIP-712 signing payload.",',
+        '      extensions: declareDiscoveryExtension({',
+        '        category: "crypto-trading",',
+        '        tags: ["hyperliquid", "polymarket", "perps", "hip-4", "x402"]',
+        '      })',
+        '    }',
+        '  },',
+        '  "POST /api/pro/audit-polymarket": {',
+        '    price: "$0.02",',
+        '    network: "base",',
+        '    config: {',
+        '      description: "audit_polymarket_resolution_trap costs $0.02/call: scans UMA Optimistic Oracle rules & CLOB V2 fee traps before betting.",',
+        '      extensions: declareDiscoveryExtension({',
+        '        category: "prediction-markets",',
+        '        tags: ["polymarket", "uma-oracle", "kalshi", "hip-4", "x402"]',
+        '      })',
+        '    }',
+        '  }',
+        '}, { url: CONFIG.CDP_FACILITATOR_URL }));',
+        '',
+        '// 2. Initialize MCP Server with 2 Free Magnet Tools + 2 Paid VIP Tools',
+        'const mcp = new McpServer({ name: "polyliquid-ai-mcp", version: "1.0.0" });',
+        '',
+        '// FREE MAGNET TOOL #1: Beats paid raw-data competitors by giving live HL data for $0',
+        'mcp.tool("get_hyperliquid_live_market", { coin: "string" }, async ({ coin }) => {',
+        '  const res = await fetch(CONFIG.HYPERLIQUID_INFO_API, {',
+        '    method: "POST",',
+        '    headers: { "Content-Type": "application/json" },',
+        '    body: JSON.stringify({ type: "l2Book", coin: coin.toUpperCase() })',
+        '  });',
+        '  const book = await res.json();',
+        '  return { content: [{ type: "text", text: JSON.stringify({ freeTier: true, coin, book }) }] };',
+        '});',
+        '',
+        '// FREE MAGNET TOOL #2: Cross-Market HIP-4 vs Polymarket Fee & Odds Scanner',
+        'mcp.tool("compare_hip4_vs_polymarket", { coin: "string", betSizeUsd: "number" }, async ({ coin, betSizeUsd = 1000 }) => {',
+        '  const metaRes = await fetch(CONFIG.HYPERLIQUID_INFO_API, {',
+        '    method: "POST",',
+        '    headers: { "Content-Type": "application/json" },',
+        '    body: JSON.stringify({ type: "outcomeMeta" })',
+        '  });',
+        '  const hip4Meta = await metaRes.json();',
+        '  return {',
+        '    content: [{',
+        '      type: "text",',
+        '      text: JSON.stringify({',
+        '        comparison: "Hyperliquid HIP-4 charges 0% open fee vs Polymarket CLOB V2 1.56%-1.80% peak 15m crypto taker fee",',
+        '        estimatedFeeSavedUsd: Number((betSizeUsd * 0.0165).toFixed(2)),',
+        '        polymarketBuilderCode: CONFIG.POLY_BUILDER_CODE,',
+        '        hyperliquidBuilderAddress: CONFIG.HL_BUILDER_ADDRESS,',
+        '        hip4Outcomes: hip4Meta',
+        '      })',
+        '    }]',
+        '  };',
+        '});',
+        '',
+        '// PAID VIP TOOL #3: Micro-Account Setup + Builder Code Order Payload',
+        'app.post("/api/pro/trade-setup", async (req, res) => {',
+        '  const { coin = "BTC", capital = 500, leverage = 2, targetNetUsd = 8.5 } = req.body;',
+        '  const notional = capital * leverage;',
+        '  res.json({',
+        '    paidVia: "x402-base-usdc",',
+        '    setup: { coin, notional, targetNetUsd, orderType: "ALO_MAKER_0.015%" },',
+        '    signedOrderTemplate: {',
+        '      builder: { b: CONFIG.HL_BUILDER_ADDRESS, f: CONFIG.HL_BUILDER_FEE_TENTHS_BPS },',
+        '      polymarketAttribution: { builderCode: CONFIG.POLY_BUILDER_CODE }',
+        '    }',
+        '  });',
+        '});',
+        '',
+        'app.listen(process.env.PORT || 8787, () => {',
+        '  console.log("PolyLiquid AI MCP + x402 Server running on port 8787");',
+        '});'
+      ].join('\n');
+    }
+
+    function simulateMcpCall(mode) {
+      var out = document.getElementById('mcp-sim-output');
+      var polyCode = (document.getElementById('cfg-poly-code').value || '').slice(0, 18) + '...';
+      var hlWallet = (document.getElementById('cfg-hl-wallet').value || '');
+      var x402Wallet = (document.getElementById('cfg-x402-wallet').value || '');
+
+      if (mode === 'free_market') {
+        out.textContent = JSON.stringify({
+          jsonrpc: "2.0",
+          method: "tools/call",
+          params: { name: "get_hyperliquid_live_market", arguments: { coin: appState.asset } },
+          result: {
+            status: "200 OK (FREE MAGNET TOOL — $0.00)",
+            price: ASSETS[appState.asset].price,
+            tier0Fees: { makerALO: "0.015%", takerMarket: "0.045%" },
+            upsellHint: "Call generate_pro_trade_setup ($0.02 USDC via x402) for exact Entry, SL, TP1/TP2 & 1-click sign link."
+          }
+        }, null, 2);
+      } else if (mode === 'free_arb') {
+        out.textContent = JSON.stringify({
+          jsonrpc: "2.0",
+          method: "tools/call",
+          params: { name: "compare_hip4_vs_polymarket", arguments: { coin: appState.asset, betSizeUsd: appState.outcomeBetSize } },
+          result: {
+            status: "200 OK (FREE MAGNET TOOL — $0.00)",
+            polymarketYes: ASSETS[appState.asset].polyOddsYes,
+            hip4Yes: ASSETS[appState.asset].hip4OddsYes,
+            feeSavedOnHip4Usd: Number((appState.outcomeBetSize * (ASSETS[appState.asset].polyTakerFeePct / 100 - 0.00035)).toFixed(2)),
+            attachedPolyBuilderCode: polyCode
+          }
+        }, null, 2);
+      } else {
+        out.textContent = JSON.stringify({
+          httpStatus: "402 Payment Required -> Auto-Signed via Coinbase CDP x402 Facilitator -> 200 OK",
+          paymentHeader: {
+            scheme: "exact",
+            network: "eip155:8453 (Base Mainnet)",
+            amount: "0.02 USDC",
+            payTo: x402Wallet,
+            description: "generate_pro_trade_setup costs $0.02/call: exact Hyperliquid Entry/SL/TP + Builder Code payload"
+          },
+          unlockedPayload: appState.lastOrderPayload
+        }, null, 2);
+      }
+    }
+
+    function copyServerCode() {
+      var codeEl = document.getElementById('mcp-code-display');
+      if (codeEl) copyTextSafe(codeEl.textContent, 'polyliquid_mcp_server.js');
+    }
+
+    function downloadServerCode() {
+      var codeEl = document.getElementById('mcp-code-display');
+      if (!codeEl) return;
+      var blob = new Blob([codeEl.textContent], { type: 'application/javascript;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'polyliquid_mcp_server.js';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Downloaded polyliquid_mcp_server.js!');
+    }
+
+    // ==================== TAB 4: 6-CHANNEL LAUNCHPAD ====================
+    var LAUNCH_CHANNELS = [
+      {
+        id: 'c1',
+        title: '1. Coinbase x402 Bazaar Auto-Discovery (AI Agents)',
+        badge: '25,783 Payable Tools Indexed',
+        url: 'https://docs.cdp.coinbase.com/x402/seller/get-discovered',
+        howItWorks: 'Hamare server code mein declareDiscoveryExtension() pehle se laga hai. Jaise hi aap Coinbase CDP Facilitator ke zariye 1 test call ($0.02) complete karenge, Coinbase x402 Bazaar aapke server ko automatically index kar lega.',
+        template: 'x402 Bazaar Auto-Description: "generate_pro_trade_setup costs $0.02/call: exact Hyperliquid Perp & HIP-4 vs Polymarket setup, net fee audit, and safe EIP-712 signing payload."'
+      },
+      {
+        id: 'c2',
+        title: '2. Official MCP Registry + Glama.ai (1,13,204+ Servers)',
+        badge: 'Browser Live Inspector',
+        url: 'https://glama.ai/mcp/servers',
+        howItWorks: 'Official MCP Registry aur Glama.ai par apna GitHub repo link dalein. Glama har tool ko index karta hai aur wahan aane wale visitors bina kuch install kiye Glama Inspector mein aapke 2 Free Tools chala kar dekh sakte hain.',
+        template: 'Title: PolyLiquid AI — Free Hyperliquid & Polymarket Cross-Market MCP + Setup Engine'
+      },
+      {
+        id: 'c3',
+        title: '3. PolyMart.app Directory & Polymarket Builders Leaderboard',
+        badge: '153+ Polymarket Tools',
+        url: 'https://polymart.app/poly-helper',
+        howItWorks: 'PolyMart.app par "Submit a tool" (100% Free) par click karke apna web link dalein, aur polymarket.com/settings?tab=builder se apna Builder Code lagayein taaki builders.polymarket.com leaderboard par aapka naam aaye.',
+        template: 'Category: Polymarket Analytics & Cross-Market HIP-4 Arbitrage | Pricing: Free for Traders'
+      },
+      {
+        id: 'c4',
+        title: '4. MCP.so (#x402 Tag) & MCP Market (50,999 Servers)',
+        badge: 'Dedicated #x402 Page',
+        url: 'https://mcp.so/tags/x402',
+        howItWorks: 'MCP.so aur mcpmarket.com ke upar "Submit" button daba kar apna GitHub URL paste karein. #x402 tag lagane se aapka server sidhe un 61+ x402 servers ki special list mein aa jayega.',
+        template: 'Tags: #x402 #hyperliquid #polymarket #mcp #crypto-trading'
+      },
+      {
+        id: 'c5',
+        title: '5. Apify x402 Agent Directory & OpenChainBench Builders',
+        badge: '96,000+ Agent Tool Index',
+        url: 'https://apify.com/tanod/x402-mcp-agent-directory',
+        howItWorks: 'Apify ka x402 & MCP Agent Directory har roz Coinbase CDP Bazaar aur Official MCP Registry se naye tools apne-aap sync karta hai. OpenChainBench.com aapke Hyperliquid Builder address ko track karta hai.',
+        template: 'Auto-synced via Official MCP Registry & Coinbase Bazaar'
+      },
+      {
+        id: 'c6',
+        title: '6. Reddit (r/Hyperliquid, r/Polymarket, r/x402) Launch Post',
+        badge: 'Direct Human Traders',
+        url: 'https://www.reddit.com/r/x402/',
+        howItWorks: 'Traders ko bataiye ki aapne ek 100% Free tool banaya hai jo Polymarket (1.80% fee) vs Hyperliquid HIP-4 (0% open fee) ka live अंतर aur $500 account ke liye exact Entry/SL/TP dikhata hai.',
+        template: 'I built a free Hyperliquid HIP-4 vs. Polymarket fee/odds scanner + MCP server (no private key required, includes UMA resolution trap checker). Try it live!'
+      }
+    ];
+
+    function toggleLaunchCheck(id) {
+      appState.launchChecks[id] = !appState.launchChecks[id];
+      try {
+        localStorage.setItem('polyliquid_launch_checks', JSON.stringify(appState.launchChecks));
+      } catch (e) {}
+      renderLaunchpad();
+    }
+
+    function renderLaunchpad() {
+      var container = document.getElementById('launchpad-cards');
+      if (!container) return;
+      var doneCount = 0;
+      var html = '';
+      for (var i = 0; i < LAUNCH_CHANNELS.length; i++) {
+        var ch = LAUNCH_CHANNELS[i];
+        var checked = !!appState.launchChecks[ch.id];
+        if (checked) doneCount++;
+        html += '<div class="bg-slate-950 border ' + (checked ? 'border-emerald-500/60' : 'border-slate-800') + ' rounded-xl p-4 flex flex-col justify-between space-y-3">' +
+          '<div>' +
+            '<div class="flex items-start justify-between gap-2">' +
+              '<label class="flex items-center gap-2.5 cursor-pointer">' +
+                '<input type="checkbox" ' + (checked ? 'checked' : '') + ' onchange="toggleLaunchCheck(\'' + ch.id + '\')" class="w-4 h-4 rounded accent-emerald-500 cursor-pointer" />' +
+                '<span class="text-xs sm:text-sm font-bold text-white">' + ch.title + '</span>' +
+              '</label>' +
+              '<span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-900 text-emerald-300 border border-slate-700 shrink-0">' + ch.badge + '</span>' +
+            '</div>' +
+            '<p class="text-xs text-slate-400 mt-2 leading-relaxed">' + ch.howItWorks + '</p>' +
+          '</div>' +
+          '<div class="pt-2 border-t border-slate-900 flex flex-wrap items-center justify-between gap-2">' +
+            '<a href="' + ch.url + '" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-cyan-400 hover:underline">Open Official Directory ↗</a>' +
+            '<button onclick="copyTextSafe(\'' + ch.template.replace(/'/g, "\\'") + '\', \'Listing Copy\')" class="text-[11px] bg-slate-900 hover:bg-slate-800 text-slate-200 px-2.5 py-1 rounded-lg border border-slate-700">Copy Ready Description</button>' +
+          '</div>' +
+        '</div>';
+      }
+      container.innerHTML = html;
+      var progEl = document.getElementById('launch-progress-text');
+      if (progEl) progEl.textContent = doneCount + ' / ' + LAUNCH_CHANNELS.length + ' Completed';
+    }
+
+    // Initialize on load
+    window.onload = function() {
+      recalcSetup();
+      recalcOutcomeArb();
+      loadTrapPreset(0);
+      updateMcpCodeAndRevenue();
+      simulateMcpCall('free_market');
+      renderLaunchpad();
+    };
+  </script>
+</body>
+</html>

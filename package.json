@@ -1,0 +1,16 @@
+{
+  "name": "polyliquid-ai-mcp-server",
+  "version": "1.0.0",
+  "description": "Hyperliquid Perps & HIP-4 + Polymarket CLOB V2 Cross-Market AI Setup & x402 MCP Server",
+  "type": "module",
+  "main": "polyliquid_mcp_server.js",
+  "scripts": {
+    "start": "node polyliquid_mcp_server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "x402-express": "^0.2.0",
+    "@x402/extensions": "^0.2.0"
+  }
+}
