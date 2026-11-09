@@ -2,7 +2,7 @@
   "$schema": "https://glama.ai/mcp/schemas/server.json",
   "name": "polyliquid-ai-mcp",
   "description": "Hyperliquid Perps & HIP-4 + Polymarket CLOB V2 cross-market arbitrage, UMA resolution trap auditor, and x402 MCP server.",
-  "homepage": "https://polyliquid-ai.tiiny.site",
+  "homepage": "https://rayksg.github.io/polyliquid-ai-mcp/",
   "category": "crypto-trading",
   "maintainers": [
     "0xD504451868BcA32BCd1E9EEA20458241864814bc"

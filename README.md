@@ -1,6 +1,6 @@
 # PolyLiquid AI — Hyperliquid & Polymarket Cross-Market Terminal + x402 MCP Server
 
-**Live Web Terminal:** [https://polyliquid-ai.tiiny.site](https://polyliquid-ai.tiiny.site)
+**Live Web Terminal:** [https://rayksg.github.io/polyliquid-ai-mcp/](https://rayksg.github.io/polyliquid-ai-mcp/)
 
 PolyLiquid AI is a cross-market analytics terminal and Model Context Protocol (MCP) server for **Hyperliquid (Perps & HIP-4 Outcome Markets)** and **Polymarket (CLOB V2)**, featuring **Coinbase x402** USDC micropayments on Base and zero-private-key EIP-712 order attribution.
 
@@ -20,4 +20,4 @@ npm start
 
 ## Live Web App
 Use the full browser calculator and MCP generator without installing anything:
-https://polyliquid-ai.tiiny.site
+https://rayksg.github.io/polyliquid-ai-mcp/
