@@ -118,22 +118,8 @@
         <button onclick="fetchLiveHyperliquidPrices(true)" class="bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-500/40 font-semibold text-xs px-3 py-1.5 rounded-lg transition-all">
           ↻ Sync Live Prices
         </button>
-        <button onclick="toggleOwnerBar()" class="bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-700 text-xs px-2.5 py-1.5 rounded-lg transition-all">
-          ⚙ Owner Settings
-        </button>
       </div>
     </div>
-    <!-- Hidden Owner Settings Drawer (so visitors see a clean Pro Terminal) -->
-    <div id="owner-drawer" class="hidden max-w-7xl mx-auto mt-2.5 pt-2.5 border-t border-slate-800/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-      <div class="text-xs text-slate-300">
-        <strong>Owner Builder Wallet Connected:</strong> <code class="text-emerald-300">0xD504451868BcA32BCd1E9EEA20458241864814bc</code>
-      </div>
-      <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-        <input id="quick-wallet-input" type="text" value="0xD504451868BcA32BCd1E9EEA20458241864814bc" placeholder="Apna 0x... Public Wallet Address yahan paste karein" oninput="syncQuickWallet(this.value)" class="flex-1 md:w-64 bg-slate-950 border border-emerald-500 rounded-lg px-3 py-1.5 text-xs mono text-emerald-300 focus:outline-none" />
-        <button onclick="downloadReadyWebsite()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs px-3.5 py-1.5 rounded-lg shadow transition-all shrink-0">
-          ⬇ Download Ready Website (index.html)
-        </button>
-      </div>
     </div>
   </div>
 
@@ -656,11 +642,6 @@
 
     var livePriceTimer = null;
 
-    function toggleOwnerBar() {
-      var drawer = document.getElementById('owner-drawer');
-      if (drawer) drawer.classList.toggle('hidden');
-    }
-
     function fetchLiveHyperliquidPrices(manualClick) {
       fetch('https://api.hyperliquid.xyz/info', {
         method: 'POST',
@@ -701,31 +682,6 @@
       });
     }
 
-    function syncQuickWallet(val) {
-      var clean = (val || '').trim();
-      if (!clean) return;
-      var hlEl = document.getElementById('cfg-hl-wallet');
-      var x402El = document.getElementById('cfg-x402-wallet');
-      if (hlEl) hlEl.value = clean;
-      if (x402El) x402El.value = clean;
-      recalcSetup();
-      updateMcpCodeAndRevenue();
-      showToast('Aapka Wallet Address (' + clean.slice(0, 8) + '...) sab jagah set ho gaya!');
-    }
-
-    function downloadReadyWebsite() {
-      var fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-      var blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = 'index.html';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast('index.html download ho gaya! Ab ise free hosting par drag-and-drop kar sakte hain.');
-    }
 
     function showToast(message) {
       var toast = document.getElementById('toast-container');
