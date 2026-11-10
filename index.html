@@ -100,9 +100,7 @@
       <button id="tab-btn-mcp" onclick="switchTab('mcp')" class="bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs sm:text-sm px-3.5 py-2 rounded-lg transition-all border border-slate-800">
         3. Builder Revenue & MCP + x402 Code
       </button>
-      <button id="tab-btn-launchpad" onclick="switchTab('launchpad')" class="bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs sm:text-sm px-3.5 py-2 rounded-lg transition-all border border-slate-800">
-        4. Customer Launchpad (Kaise Pata Chalega?)
-      </button>
+
     </div>
   </header>
 
@@ -577,29 +575,6 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 4: CUSTOMER LAUNCHPAD (KAISE PATA CHALEGA?) ==================== -->
-    <section id="view-launchpad" class="hidden space-y-6">
-      <div class="glass-card rounded-2xl p-5 space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
-          <div>
-            <h2 class="text-base sm:text-lg font-extrabold text-white">6 Free Channels: Logon Aur AI Agents Ko Hamare Tool Ka Pata Kaise Chalega?</h2>
-            <p class="text-xs text-slate-400">
-              Check off each step as we submit your URL — zero paid ads required. Progress saved automatically.
-            </p>
-          </div>
-          <div class="text-right">
-            <div class="text-xs text-slate-400">Launchpad Readiness</div>
-            <div id="launch-progress-text" class="text-base font-extrabold text-emerald-400 mono">0 / 6 Completed</div>
-          </div>
-        </div>
-
-        <!-- 6 Distribution Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="launchpad-cards">
-          <!-- Populated dynamically by renderLaunchpad() -->
-        </div>
-      </div>
-    </section>
-
   </main>
 
   <!-- Footer with Verified Sources -->
@@ -672,19 +647,10 @@
       targetNetProfit: 8.5,
       builderFeePct: 0.05, // 0.05% = f: 50 tenths of bps
       outcomeBetSize: 1000,
-      lastOrderPayload: {},
-      launchChecks: { c1: true, c2: false, c3: false, c4: false, c5: false, c6: false }
+      lastOrderPayload: {}
     };
 
     var revenueChartInstance = null;
-
-    // Load saved state safely
-    try {
-      var savedChecks = localStorage.getItem('polyliquid_launch_checks');
-      if (savedChecks) {
-        appState.launchChecks = JSON.parse(savedChecks);
-      }
-    } catch (e) {}
 
 
 
@@ -803,7 +769,7 @@
     // ==================== TAB NAVIGATION ====================
     function switchTab(tabId) {
       appState.activeTab = tabId;
-      var tabs = ['terminal', 'auditor', 'mcp', 'launchpad'];
+      var tabs = ['terminal', 'auditor', 'mcp'];
       for (var i = 0; i < tabs.length; i++) {
         var t = tabs[i];
         var viewEl = document.getElementById('view-' + t);
@@ -820,8 +786,6 @@
       }
       if (tabId === 'mcp') {
         updateMcpCodeAndRevenue();
-      } else if (tabId === 'launchpad') {
-        renderLaunchpad();
       }
     }
 
@@ -1404,96 +1368,6 @@
       showToast('Downloaded polyliquid_mcp_server.js!');
     }
 
-    // ==================== TAB 4: 6-CHANNEL LAUNCHPAD ====================
-    var LAUNCH_CHANNELS = [
-      {
-        id: 'c1',
-        title: '1. Coinbase x402 Bazaar Auto-Discovery (AI Agents)',
-        badge: '25,783 Payable Tools Indexed',
-        url: 'https://docs.cdp.coinbase.com/x402/seller/get-discovered',
-        howItWorks: 'Hamare server code mein declareDiscoveryExtension() pehle se laga hai. Jaise hi aap Coinbase CDP Facilitator ke zariye 1 test call ($0.02) complete karenge, Coinbase x402 Bazaar aapke server ko automatically index kar lega.',
-        template: 'x402 Bazaar Auto-Description: "generate_pro_trade_setup costs $0.02/call: exact Hyperliquid Perp & HIP-4 vs Polymarket setup, net fee audit, and safe EIP-712 signing payload."'
-      },
-      {
-        id: 'c2',
-        title: '2. Official MCP Registry + Glama.ai (1,13,204+ Servers)',
-        badge: 'Browser Live Inspector',
-        url: 'https://glama.ai/mcp/servers',
-        howItWorks: 'Official MCP Registry aur Glama.ai par apna GitHub repo link dalein. Glama har tool ko index karta hai aur wahan aane wale visitors bina kuch install kiye Glama Inspector mein aapke 2 Free Tools chala kar dekh sakte hain.',
-        template: 'Title: PolyLiquid AI — Free Hyperliquid & Polymarket Cross-Market MCP + Setup Engine'
-      },
-      {
-        id: 'c3',
-        title: '3. PolyMart.app Directory & Polymarket Builders Leaderboard',
-        badge: '153+ Polymarket Tools',
-        url: 'https://polymart.app/poly-helper',
-        howItWorks: 'PolyMart.app par "Submit a tool" (100% Free) par click karke apna web link dalein, aur polymarket.com/settings?tab=builder se apna Builder Code lagayein taaki builders.polymarket.com leaderboard par aapka naam aaye.',
-        template: 'Category: Polymarket Analytics & Cross-Market HIP-4 Arbitrage | Pricing: Free for Traders'
-      },
-      {
-        id: 'c4',
-        title: '4. MCP.so (#x402 Tag) & MCP Market (50,999 Servers)',
-        badge: 'Dedicated #x402 Page',
-        url: 'https://mcp.so/tags/x402',
-        howItWorks: 'MCP.so aur mcpmarket.com ke upar "Submit" button daba kar apna GitHub URL paste karein. #x402 tag lagane se aapka server sidhe un 61+ x402 servers ki special list mein aa jayega.',
-        template: 'Tags: #x402 #hyperliquid #polymarket #mcp #crypto-trading'
-      },
-      {
-        id: 'c5',
-        title: '5. Apify x402 Agent Directory & OpenChainBench Builders',
-        badge: '96,000+ Agent Tool Index',
-        url: 'https://apify.com/tanod/x402-mcp-agent-directory',
-        howItWorks: 'Apify ka x402 & MCP Agent Directory har roz Coinbase CDP Bazaar aur Official MCP Registry se naye tools apne-aap sync karta hai. OpenChainBench.com aapke Hyperliquid Builder address ko track karta hai.',
-        template: 'Auto-synced via Official MCP Registry & Coinbase Bazaar'
-      },
-      {
-        id: 'c6',
-        title: '6. Reddit (r/Hyperliquid, r/Polymarket, r/x402) Launch Post',
-        badge: 'Direct Human Traders',
-        url: 'https://www.reddit.com/r/x402/',
-        howItWorks: 'Traders ko bataiye ki aapne ek 100% Free tool banaya hai jo Polymarket (1.80% fee) vs Hyperliquid HIP-4 (0% open fee) ka live अंतर aur $500 account ke liye exact Entry/SL/TP dikhata hai.',
-        template: 'I built a free Hyperliquid HIP-4 vs. Polymarket fee/odds scanner + MCP server (no private key required, includes UMA resolution trap checker). Try it live!'
-      }
-    ];
-
-    function toggleLaunchCheck(id) {
-      appState.launchChecks[id] = !appState.launchChecks[id];
-      try {
-        localStorage.setItem('polyliquid_launch_checks', JSON.stringify(appState.launchChecks));
-      } catch (e) {}
-      renderLaunchpad();
-    }
-
-    function renderLaunchpad() {
-      var container = document.getElementById('launchpad-cards');
-      if (!container) return;
-      var doneCount = 0;
-      var html = '';
-      for (var i = 0; i < LAUNCH_CHANNELS.length; i++) {
-        var ch = LAUNCH_CHANNELS[i];
-        var checked = !!appState.launchChecks[ch.id];
-        if (checked) doneCount++;
-        html += '<div class="bg-slate-950 border ' + (checked ? 'border-emerald-500/60' : 'border-slate-800') + ' rounded-xl p-4 flex flex-col justify-between space-y-3">' +
-          '<div>' +
-            '<div class="flex items-start justify-between gap-2">' +
-              '<label class="flex items-center gap-2.5 cursor-pointer">' +
-                '<input type="checkbox" ' + (checked ? 'checked' : '') + ' onchange="toggleLaunchCheck(\'' + ch.id + '\')" class="w-4 h-4 rounded accent-emerald-500 cursor-pointer" />' +
-                '<span class="text-xs sm:text-sm font-bold text-white">' + ch.title + '</span>' +
-              '</label>' +
-              '<span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-900 text-emerald-300 border border-slate-700 shrink-0">' + ch.badge + '</span>' +
-            '</div>' +
-            '<p class="text-xs text-slate-400 mt-2 leading-relaxed">' + ch.howItWorks + '</p>' +
-          '</div>' +
-          '<div class="pt-2 border-t border-slate-900 flex flex-wrap items-center justify-between gap-2">' +
-            '<a href="' + ch.url + '" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-cyan-400 hover:underline">Open Official Directory ↗</a>' +
-            '<button onclick="copyTextSafe(\'' + ch.template.replace(/'/g, "\\'") + '\', \'Listing Copy\')" class="text-[11px] bg-slate-900 hover:bg-slate-800 text-slate-200 px-2.5 py-1 rounded-lg border border-slate-700">Copy Ready Description</button>' +
-          '</div>' +
-        '</div>';
-      }
-      container.innerHTML = html;
-      var progEl = document.getElementById('launch-progress-text');
-      if (progEl) progEl.textContent = doneCount + ' / ' + LAUNCH_CHANNELS.length + ' Completed';
-    }
 
     // Initialize on load
     window.onload = function() {
@@ -1505,7 +1379,6 @@
       loadTrapPreset(0);
       updateMcpCodeAndRevenue();
       simulateMcpCall('free_market');
-      renderLaunchpad();
     };
   </script>
 </body>
