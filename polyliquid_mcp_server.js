@@ -248,7 +248,7 @@ const server = http.createServer(async (req, res) => {
 
   if (pathname === "/api/pro/trade-setup") {
     const challenge = build402Payload(
-      `https://${req.headers.host || "polyliquid-ai-mcp.koyeb.app"}/api/pro/trade-setup`,
+      `https://${req.headers.host || "polyliquid-ai-mcp.onrender.com"}/api/pro/trade-setup`,
       "generate_pro_trade_setup",
       "generate_pro_trade_setup costs $0.02/call on Base USDC: returns exact Hyperliquid Entry, SL, TP1/TP2, net fee math, and EIP-712 signing payload."
     );
@@ -273,7 +273,7 @@ const server = http.createServer(async (req, res) => {
 
   if (pathname === "/api/pro/audit-polymarket") {
     const challenge = build402Payload(
-      `https://${req.headers.host || "polyliquid-ai-mcp.koyeb.app"}/api/pro/audit-polymarket`,
+      `https://${req.headers.host || "polyliquid-ai-mcp.onrender.com"}/api/pro/audit-polymarket`,
       "audit_polymarket_resolution_trap",
       "audit_polymarket_resolution_trap costs $0.02/call on Base USDC: scans Polymarket UMA Optimistic Oracle rules and CLOB V2 fee traps."
     );
