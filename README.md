@@ -1,9 +1,5 @@
 # PolyLiquid AI — Hyperliquid & Polymarket Cross-Market Terminal + x402 MCP Server
-## Live Endpoints (Zero Install)
-- **Live Web Terminal:** https://rayksg.github.io/polyliquid-ai-mcp/
-- **Remote MCP Server (Claude / Cursor / Glama):** https://polyliquid-ai-mcp.onrender.com/mcp
-- **x402 Paid Trade Setup API ($0.02 USDC on Base):** https://polyliquid-ai-mcp.onrender.com/api/pro/trade-setup
-- **x402 Paid Polymarket Audit API ($0.02 USDC on Base):** https://polyliquid-ai-mcp.onrender.com/api/pro/audit-polymarket
+
 **Live Web Terminal:** [https://rayksg.github.io/polyliquid-ai-mcp/](https://rayksg.github.io/polyliquid-ai-mcp/)
 
 PolyLiquid AI is a cross-market analytics terminal and Model Context Protocol (MCP) server for **Hyperliquid (Perps & HIP-4 Outcome Markets)** and **Polymarket (CLOB V2)**, featuring **Coinbase x402** USDC micropayments on Base and zero-private-key EIP-712 order attribution.

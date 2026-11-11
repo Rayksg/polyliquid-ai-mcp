@@ -21,6 +21,36 @@ const CONFIG = {
   HYPERLIQUID_INFO_API: "https://api.hyperliquid.xyz/info"
 };
 
+
+const FACILITATOR_URL = process.env.X402_FACILITATOR_URL || "https://facilitator.payai.network";
+
+async function verifyAndSettleX402(paymentHeaderB64, paymentRequirements) {
+  try {
+    const paymentPayload = JSON.parse(Buffer.from(paymentHeaderB64, "base64").toString("utf-8"));
+    const verifyRes = await fetch(`${FACILITATOR_URL}/verify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ paymentPayload, paymentRequirements })
+    });
+    const verifyJson = await verifyRes.json();
+    if (!verifyJson.isValid) {
+      return { ok: false, stage: "verify", error: verifyJson.invalidReason || "Invalid x402 payment signature" };
+    }
+    const settleRes = await fetch(`${FACILITATOR_URL}/settle`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ paymentPayload, paymentRequirements })
+    });
+    const settleJson = await settleRes.json();
+    if (!settleJson.success) {
+      return { ok: false, stage: "settle", error: settleJson.errorReason || "Settlement failed on Base" };
+    }
+    return { ok: true, txHash: settleJson.transaction || settleJson.txHash || "settled" };
+  } catch (err) {
+    return { ok: false, stage: "facilitator_network", error: err.message };
+  }
+}
+
 const FALLBACK_PRICES = { BTC: 74522, ETH: 2113, SOL: 85.77, HYPE: 73.75 };
 
 async function getLivePrices() {
@@ -217,46 +247,53 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (pathname === "/api/pro/trade-setup") {
+    const challenge = build402Payload(
+      `https://${req.headers.host || "polyliquid-ai-mcp.koyeb.app"}/api/pro/trade-setup`,
+      "generate_pro_trade_setup",
+      "generate_pro_trade_setup costs $0.02/call on Base USDC: returns exact Hyperliquid Entry, SL, TP1/TP2, net fee math, and EIP-712 signing payload."
+    );
     const paymentHeader = req.headers["payment-signature"] || req.headers["x-payment"];
     if (!paymentHeader) {
-      const challenge = build402Payload(
-        `https://${req.headers.host || "polyliquid-ai-mcp.onrender.com"}/api/pro/trade-setup`,
-        "generate_pro_trade_setup",
-        "generate_pro_trade_setup costs $0.02/call on Base USDC: returns exact Hyperliquid Entry, SL, TP1/TP2, net fee math, and EIP-712 signing payload."
-      );
       const b64 = Buffer.from(JSON.stringify(challenge)).toString("base64");
-      res.writeHead(402, {
-        "Content-Type": "application/json",
-        "PAYMENT-REQUIRED": b64
-      });
+      res.writeHead(402, { "Content-Type": "application/json", "PAYMENT-REQUIRED": b64 });
       return res.end(JSON.stringify(challenge, null, 2));
+    }
+    const settlement = await verifyAndSettleX402(paymentHeader, challenge.accepts[0]);
+    if (!settlement.ok) {
+      const b64 = Buffer.from(JSON.stringify(challenge)).toString("base64");
+      res.writeHead(402, { "Content-Type": "application/json", "PAYMENT-REQUIRED": b64 });
+      return res.end(JSON.stringify({ ...challenge, error: settlement.error }, null, 2));
     }
     const body = await readBody();
     const prices = await getLivePrices();
     const setup = buildTradeSetup(body.coin, body.capital, body.leverage, body.targetNetUsd, body.direction, prices);
     res.writeHead(200, { "Content-Type": "application/json" });
-    return res.end(JSON.stringify({ paidVia: "x402-base-usdc", payTo: CONFIG.OWNER_WALLET, setup }, null, 2));
+    return res.end(JSON.stringify({ paidVia: "x402-base-usdc", txHash: settlement.txHash, payTo: CONFIG.OWNER_WALLET, setup }, null, 2));
   }
 
   if (pathname === "/api/pro/audit-polymarket") {
+    const challenge = build402Payload(
+      `https://${req.headers.host || "polyliquid-ai-mcp.koyeb.app"}/api/pro/audit-polymarket`,
+      "audit_polymarket_resolution_trap",
+      "audit_polymarket_resolution_trap costs $0.02/call on Base USDC: scans Polymarket UMA Optimistic Oracle rules and CLOB V2 fee traps."
+    );
     const paymentHeader = req.headers["payment-signature"] || req.headers["x-payment"];
     if (!paymentHeader) {
-      const challenge = build402Payload(
-        `https://${req.headers.host || "polyliquid-ai-mcp.onrender.com"}/api/pro/audit-polymarket`,
-        "audit_polymarket_resolution_trap",
-        "audit_polymarket_resolution_trap costs $0.02/call on Base USDC: scans Polymarket UMA Optimistic Oracle rules and CLOB V2 fee traps."
-      );
       const b64 = Buffer.from(JSON.stringify(challenge)).toString("base64");
-      res.writeHead(402, {
-        "Content-Type": "application/json",
-        "PAYMENT-REQUIRED": b64
-      });
+      res.writeHead(402, { "Content-Type": "application/json", "PAYMENT-REQUIRED": b64 });
       return res.end(JSON.stringify(challenge, null, 2));
+    }
+    const settlement = await verifyAndSettleX402(paymentHeader, challenge.accepts[0]);
+    if (!settlement.ok) {
+      const b64 = Buffer.from(JSON.stringify(challenge)).toString("base64");
+      res.writeHead(402, { "Content-Type": "application/json", "PAYMENT-REQUIRED": b64 });
+      return res.end(JSON.stringify({ ...challenge, error: settlement.error }, null, 2));
     }
     const body = await readBody();
     res.writeHead(200, { "Content-Type": "application/json" });
     return res.end(JSON.stringify({
       paidVia: "x402-base-usdc",
+      txHash: settlement.txHash,
       payTo: CONFIG.OWNER_WALLET,
       auditScore: 82,
       verdict: "HIGH ORACLE & FEE DRAG RISK",
